@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: E-Commerce Platform API
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/ecommerce_db?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
+    username: root
+    password: db@2025
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
+  jackson:
+    time-zone: Asia/Ho_Chi_Minh
+    date-format: yyyy-MM-dd'T'HH:mm:ss
+
+application:
+  security:
+    jwt:
+      secret-key: "3817caca7addee1dfd376655e9124538adb5783c5df5763cacbea39d4ef5f073171fa0bbbf7f64ff0d86501874ab6901e9e9c5f1c48564161e1c592da9a5064f"
+      expiration: 1209600000
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api/v1
