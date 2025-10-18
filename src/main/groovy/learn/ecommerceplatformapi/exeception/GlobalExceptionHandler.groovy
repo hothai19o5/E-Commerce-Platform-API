@@ -40,4 +40,9 @@ class GlobalExceptionHandler {
     ResponseEntity<MessageResponse> handleRuntime(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(ex.message ?: 'Bad request'))
     }
+
+    @ExceptionHandler(TokenRefreshException)
+    ResponseEntity<MessageResponse> handleTokenRefreshException(TokenRefreshException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse(ex.message ?: 'Token refresh error'))
+    }
 }

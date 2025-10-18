@@ -24,7 +24,7 @@ class JwtUtils {
 
     private SecretKey getSigningKey() {
         // Secret is configured as hex string in application.yml
-        byte[] keyBytes = Decoders.HEX.decode(jwtSecret)
+        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret)
         return Keys.hmacShaKeyFor(keyBytes)
     }
 

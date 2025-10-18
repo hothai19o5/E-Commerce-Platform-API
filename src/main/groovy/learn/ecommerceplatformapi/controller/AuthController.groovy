@@ -3,8 +3,10 @@ package learn.ecommerceplatformapi.controller
 import jakarta.validation.Valid
 import learn.ecommerceplatformapi.dto.request.LoginRequest
 import learn.ecommerceplatformapi.dto.request.RegisterRequest
+import learn.ecommerceplatformapi.dto.request.TokenRefreshRequest
 import learn.ecommerceplatformapi.dto.response.JwtResponse
 import learn.ecommerceplatformapi.dto.response.MessageResponse
+import learn.ecommerceplatformapi.dto.response.TokenRefreshResponse
 import learn.ecommerceplatformapi.service.AuthService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
@@ -28,5 +30,15 @@ class AuthController {
     @PostMapping("/signup")
     ResponseEntity<MessageResponse> registerUser(@Valid @RequestBody RegisterRequest signUpRequest) {
         return ResponseEntity.ok(authService.registerUser(signUpRequest))
+    }
+
+    @PostMapping("/logout")
+    ResponseEntity<MessageResponse> logout(@Valid @RequestBody TokenRefreshRequest request) {
+        return ResponseEntity.ok(authService.logoutUser(request.refreshToken))
+    }
+
+    @PostMapping("/refreshtoken")
+    ResponseEntity<TokenRefreshResponse> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
+        return ResponseEntity.ok(authService.refreshToken(request))
     }
 }

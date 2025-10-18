@@ -20,7 +20,8 @@ application:
   security:
     jwt:
       secret-key: "3817caca7addee1dfd376655e9124538adb5783c5df5763cacbea39d4ef5f073171fa0bbbf7f64ff0d86501874ab6901e9e9c5f1c48564161e1c592da9a5064f"
-      expiration: 1209600000
+      expiration: 300000 # 5 minutes
+      refresh-expiration: 1209600000 # 14 days
 
 server:
   port: 8080

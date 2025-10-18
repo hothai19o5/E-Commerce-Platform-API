@@ -4,14 +4,18 @@ package learn.ecommerceplatformapi.service
 import jakarta.transaction.Transactional
 import learn.ecommerceplatformapi.dto.request.LoginRequest
 import learn.ecommerceplatformapi.dto.request.RegisterRequest
+import learn.ecommerceplatformapi.dto.request.TokenRefreshRequest
 import learn.ecommerceplatformapi.dto.response.JwtResponse
 import learn.ecommerceplatformapi.dto.response.MessageResponse
+import learn.ecommerceplatformapi.dto.response.TokenRefreshResponse
 import learn.ecommerceplatformapi.entity.ERole
 import learn.ecommerceplatformapi.entity.Role
 import learn.ecommerceplatformapi.entity.User
+import learn.ecommerceplatformapi.exeception.TokenRefreshException
 import learn.ecommerceplatformapi.repository.RoleRepository
 import learn.ecommerceplatformapi.repository.UserRepository
 import learn.ecommerceplatformapi.security.jwt.JwtUtils
+import learn.ecommerceplatformapi.security.sevices.RefreshTokenService
 import learn.ecommerceplatformapi.security.sevices.UserDetailsImpl
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.AuthenticationManager
@@ -24,21 +28,39 @@ import org.springframework.stereotype.Service
 @Service
 class AuthService {
 
-    @Autowired AuthenticationManager authenticationManager
-    @Autowired UserRepository userRepository
-    @Autowired RoleRepository roleRepository
-    @Autowired PasswordEncoder encoder
-    @Autowired JwtUtils jwtUtils
+    @Autowired
+    AuthenticationManager authenticationManager
+
+    @Autowired
+    UserRepository userRepository
+
+    @Autowired
+    RoleRepository roleRepository
+
+    @Autowired
+    PasswordEncoder encoder
+
+    @Autowired
+    JwtUtils jwtUtils
+
+    @Autowired
+    RefreshTokenService refreshTokenService
 
     JwtResponse authenticateUser(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.username, loginRequest.password)
         )
         SecurityContextHolder.getContext().setAuthentication(authentication)
+
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.principal
         String jwt = jwtUtils.generateToken(userDetails)
+
+        User user = userRepository.findByUsername(userDetails.username).orElseThrow()
+        String refreshToken = refreshTokenService.createForUser(user)
+
         List<String> roles = userDetails.authorities.collect { it.authority }
-        return new JwtResponse(jwt, userDetails.id, userDetails.username, userDetails.email, roles)
+
+        return new JwtResponse(jwt, refreshToken, userDetails.id, userDetails.username, userDetails.email, roles)
     }
 
     @Transactional
@@ -87,5 +109,23 @@ class AuthService {
         userRepository.save(user)
 
         return new MessageResponse("User registered successfully!")
+    }
+
+    TokenRefreshResponse refreshToken(TokenRefreshRequest request) {
+        String requestToken = request.refreshToken
+        def refreshToken = refreshTokenService.findByToken(requestToken)
+                .map { refreshTokenService.verifyExpiration(it) }
+                .orElseThrow( new TokenRefreshException(requestToken, "Refresh toekn not found"))
+
+        String newAccessToken = jwtUtils.generateTokenFromUsername(refreshToken.user.username)
+        def rotated = refreshTokenService.rotate(refreshToken)
+
+        return new TokenRefreshResponse(newAccessToken, rotated.token)
+    }
+
+    @Transactional
+    MessageResponse logoutUser(String requestToken) {
+        refreshTokenService.revokeByToken(requestToken)
+        return new MessageResponse("Log out successful!")
     }
 }
