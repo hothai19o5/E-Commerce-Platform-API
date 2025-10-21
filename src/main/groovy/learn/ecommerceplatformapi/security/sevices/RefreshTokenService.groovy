@@ -42,7 +42,7 @@ class RefreshTokenService {
     }
 
     @Transactional
-    void revokeByToken(String token) {
+    def revokeByToken(String token) {
         refreshTokenRepository.findByToken(token).ifPresent { t ->
             t.revoked = true
             refreshTokenRepository.save(t)

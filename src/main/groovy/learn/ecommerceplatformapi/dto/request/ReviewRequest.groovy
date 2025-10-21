@@ -1,5 +1,7 @@
 package learn.ecommerceplatformapi.dto.request
 
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import lombok.AllArgsConstructor
 import lombok.Builder
@@ -10,7 +12,10 @@ import lombok.NoArgsConstructor
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-class TokenRefreshRequest {
+class ReviewRequest {
     @NotBlank
-    String refreshToken
+    @Min(1)
+    @Max(5)
+    Integer rating
+    String comment
 }

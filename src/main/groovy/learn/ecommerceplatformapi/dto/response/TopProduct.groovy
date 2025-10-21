@@ -1,6 +1,5 @@
-package learn.ecommerceplatformapi.dto.request
+package learn.ecommerceplatformapi.dto.response
 
-import jakarta.validation.constraints.NotBlank
 import lombok.AllArgsConstructor
 import lombok.Builder
 import lombok.Data
@@ -10,7 +9,8 @@ import lombok.NoArgsConstructor
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-class TokenRefreshRequest {
-    @NotBlank
-    String refreshToken
+class TopProduct {
+    Long productId
+    String productName
+    Long totalSold
 }

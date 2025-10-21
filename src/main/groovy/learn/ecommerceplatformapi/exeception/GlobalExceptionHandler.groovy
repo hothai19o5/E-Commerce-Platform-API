@@ -1,7 +1,7 @@
 // Xử lý exception toàn cục
 package learn.ecommerceplatformapi.exeception
 
-import learn.ecommerceplatformapi.dto.response.MessageResponse
+import learn.ecommerceplatformapi.dto.response.ErrorResponse
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.AccessDeniedException
@@ -16,33 +16,47 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException)
     ResponseEntity<Map<String, Object>> handleValidationErrors(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = [:]
+        Map<String, Object> errors = [:]
         ex.bindingResult.allErrors.each { error ->
             String fieldName = ((FieldError) error).field
-            String errorMessage = error.defaultMessage
-            errors[fieldName] = errorMessage
+            String ErrorResponse = error.defaultMessage
+            errors[fieldName] = ErrorResponse
         }
-        Map<String, Object> body = [message: 'Validation failed', errors: errors]
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body)
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors)
     }
 
     @ExceptionHandler(AccessDeniedException)
-    ResponseEntity<MessageResponse> handleAccessDenied(AccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse('Error: Access denied'))
+    ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(ex.message ?: 'ACCESS DENIED'))
     }
 
     @ExceptionHandler(UsernameNotFoundException)
-    ResponseEntity<MessageResponse> handleUserNotFound(UsernameNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(ex.message ?: 'User not found'))
+    ResponseEntity<ErrorResponse> handleUserNotFound(UsernameNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(ex.message ?: 'USERNAME NOT FOUND'))
     }
 
     @ExceptionHandler(RuntimeException)
-    ResponseEntity<MessageResponse> handleRuntime(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(ex.message ?: 'Bad request'))
+    ResponseEntity<ErrorResponse> handleRuntime(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(ex.message ?: 'BAD REQUEST'))
     }
 
     @ExceptionHandler(TokenRefreshException)
-    ResponseEntity<MessageResponse> handleTokenRefreshException(TokenRefreshException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse(ex.message ?: 'Token refresh error'))
+    ResponseEntity<ErrorResponse> handleTokenRefreshException(TokenRefreshException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ErrorResponse(ex.message ?: 'TOKEN REFRESH FAILED'))
+    }
+
+    @ExceptionHandler(NoSuchElementException)
+    ResponseEntity<ErrorResponse> handleNoSuchElementException(NoSuchElementException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(ex.message ?: 'ELEMENT NOT FOUND'))
+    }
+
+    @ExceptionHandler(IllegalArgumentException)
+    ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(ex.message ?: 'INVALID ARGUMENT'))
+    }
+
+    @ExceptionHandler(UsernameOrEmailAlreadyExistsException)
+    ResponseEntity<ErrorResponse> handleUsernameOrEmailAlreadyExistsException(UsernameOrEmailAlreadyExistsException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(ex.message ?: 'USERNAME OR EMAIL ALREADY EXISTS'))
     }
 }

@@ -5,7 +5,7 @@ import learn.ecommerceplatformapi.dto.request.LoginRequest
 import learn.ecommerceplatformapi.dto.request.RegisterRequest
 import learn.ecommerceplatformapi.dto.request.TokenRefreshRequest
 import learn.ecommerceplatformapi.dto.response.JwtResponse
-import learn.ecommerceplatformapi.dto.response.MessageResponse
+import learn.ecommerceplatformapi.dto.response.ErrorResponse
 import learn.ecommerceplatformapi.dto.response.TokenRefreshResponse
 import learn.ecommerceplatformapi.service.AuthService
 import org.springframework.beans.factory.annotation.Autowired
@@ -19,8 +19,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/auth")
 class AuthController {
 
-    @Autowired
-    AuthService authService
+    @Autowired private AuthService authService
 
     @PostMapping("/signin")
     ResponseEntity<JwtResponse> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
@@ -28,12 +27,12 @@ class AuthController {
     }
 
     @PostMapping("/signup")
-    ResponseEntity<MessageResponse> registerUser(@Valid @RequestBody RegisterRequest signUpRequest) {
+    ResponseEntity registerUser(@Valid @RequestBody RegisterRequest signUpRequest) {
         return ResponseEntity.ok(authService.registerUser(signUpRequest))
     }
 
     @PostMapping("/logout")
-    ResponseEntity<MessageResponse> logout(@Valid @RequestBody TokenRefreshRequest request) {
+    ResponseEntity logout(@Valid @RequestBody TokenRefreshRequest request) {
         return ResponseEntity.ok(authService.logoutUser(request.refreshToken))
     }
 

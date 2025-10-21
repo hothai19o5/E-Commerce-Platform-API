@@ -6,12 +6,13 @@ import learn.ecommerceplatformapi.dto.request.LoginRequest
 import learn.ecommerceplatformapi.dto.request.RegisterRequest
 import learn.ecommerceplatformapi.dto.request.TokenRefreshRequest
 import learn.ecommerceplatformapi.dto.response.JwtResponse
-import learn.ecommerceplatformapi.dto.response.MessageResponse
+import learn.ecommerceplatformapi.dto.response.ErrorResponse
 import learn.ecommerceplatformapi.dto.response.TokenRefreshResponse
 import learn.ecommerceplatformapi.entity.ERole
 import learn.ecommerceplatformapi.entity.Role
 import learn.ecommerceplatformapi.entity.User
 import learn.ecommerceplatformapi.exeception.TokenRefreshException
+import learn.ecommerceplatformapi.exeception.UsernameOrEmailAlreadyExistsException
 import learn.ecommerceplatformapi.repository.RoleRepository
 import learn.ecommerceplatformapi.repository.UserRepository
 import learn.ecommerceplatformapi.security.jwt.JwtUtils
@@ -28,23 +29,12 @@ import org.springframework.stereotype.Service
 @Service
 class AuthService {
 
-    @Autowired
-    AuthenticationManager authenticationManager
-
-    @Autowired
-    UserRepository userRepository
-
-    @Autowired
-    RoleRepository roleRepository
-
-    @Autowired
-    PasswordEncoder encoder
-
-    @Autowired
-    JwtUtils jwtUtils
-
-    @Autowired
-    RefreshTokenService refreshTokenService
+    @Autowired private AuthenticationManager authenticationManager
+    @Autowired private UserRepository userRepository
+    @Autowired private RoleRepository roleRepository
+    @Autowired private PasswordEncoder encoder
+    @Autowired private JwtUtils jwtUtils
+    @Autowired private RefreshTokenService refreshTokenService
 
     JwtResponse authenticateUser(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
@@ -64,13 +54,11 @@ class AuthService {
     }
 
     @Transactional
-    MessageResponse registerUser(RegisterRequest signUpRequest) {
-        if (userRepository.existsByUsername(signUpRequest.username)) {
-            return new MessageResponse("Error: Username is already taken!")
-        }
-        if (userRepository.existsByEmail(signUpRequest.email)) {
-            return new MessageResponse("Error: Email is already in use!")
-        }
+    ErrorResponse registerUser(RegisterRequest signUpRequest) {
+        if (userRepository.existsByUsername(signUpRequest.username))
+            throw new UsernameOrEmailAlreadyExistsException(signUpRequest.username)
+        if (userRepository.existsByEmail(signUpRequest.email))
+            throw new UsernameOrEmailAlreadyExistsException(signUpRequest.email)
 
         // Create new user's account
         User user = new User(
@@ -84,23 +72,22 @@ class AuthService {
 
         if (strRoles == null || strRoles.isEmpty()) {
             Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-                    .orElseThrow(() -> new RuntimeException("Error: Role USER is not found."))
+                    .orElseThrow(() -> new RuntimeException("Role USER is not found."))
             roles.add(userRole)
         } else {
             strRoles.each { String role ->
                 switch (role?.toLowerCase()) {
                     case 'admin':
                         roles.add(roleRepository.findByName(ERole.ROLE_ADMIN)
-                                .orElseThrow(() -> new RuntimeException("Error: Role ADMIN is not found.")))
+                                .orElseThrow(() -> new RuntimeException("Role ADMIN is not found.")))
                         break
-                    case 'mod':
                     case 'moderator':
                         roles.add(roleRepository.findByName(ERole.ROLE_MODERATOR)
-                                .orElseThrow(() -> new RuntimeException("Error: Role MODERATOR is not found.")))
+                                .orElseThrow(() -> new RuntimeException("Role MODERATOR is not found.")))
                         break
                     default:
                         roles.add(roleRepository.findByName(ERole.ROLE_USER)
-                                .orElseThrow(() -> new RuntimeException("Error: Role USER is not found.")))
+                                .orElseThrow(() -> new RuntimeException("Role USER is not found.")))
                 }
             }
         }
@@ -108,14 +95,14 @@ class AuthService {
         user.roles = roles
         userRepository.save(user)
 
-        return new MessageResponse("User registered successfully!")
+        return new ErrorResponse("User registered successfully!")
     }
 
     TokenRefreshResponse refreshToken(TokenRefreshRequest request) {
         String requestToken = request.refreshToken
         def refreshToken = refreshTokenService.findByToken(requestToken)
                 .map { refreshTokenService.verifyExpiration(it) }
-                .orElseThrow( new TokenRefreshException(requestToken, "Refresh toekn not found"))
+                .orElseThrow(() -> new TokenRefreshException(requestToken, "Refresh token is not in database!"))
 
         String newAccessToken = jwtUtils.generateTokenFromUsername(refreshToken.user.username)
         def rotated = refreshTokenService.rotate(refreshToken)
@@ -124,8 +111,7 @@ class AuthService {
     }
 
     @Transactional
-    MessageResponse logoutUser(String requestToken) {
+    def logoutUser(String requestToken) {
         refreshTokenService.revokeByToken(requestToken)
-        return new MessageResponse("Log out successful!")
     }
 }

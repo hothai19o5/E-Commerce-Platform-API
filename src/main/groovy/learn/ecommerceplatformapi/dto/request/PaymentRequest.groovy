@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-class TokenRefreshRequest {
+class PaymentRequest {
     @NotBlank
-    String refreshToken
+    String stripeTokenId
 }

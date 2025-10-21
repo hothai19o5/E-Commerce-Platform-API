@@ -2,18 +2,17 @@ package learn.ecommerceplatformapi.configuration
 
 import jakarta.annotation.PostConstruct
 import learn.ecommerceplatformapi.entity.ERole
+import learn.ecommerceplatformapi.entity.EShippingMethod
 import learn.ecommerceplatformapi.entity.Role
 import learn.ecommerceplatformapi.repository.RoleRepository
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 class DataInitializer {
 
-    private final RoleRepository roleRepository
-
-    DataInitializer(RoleRepository roleRepository) {
-        this.roleRepository = roleRepository
-    }
+    @Autowired
+    private RoleRepository roleRepository
 
     @PostConstruct
     void init() {

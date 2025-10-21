@@ -1,9 +1,13 @@
 package learn.ecommerceplatformapi.entity
 
 import jakarta.persistence.*
+import lombok.AllArgsConstructor
+import lombok.NoArgsConstructor
 
 @Entity
 @Table(name = "roles")
+@AllArgsConstructor
+@NoArgsConstructor
 class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -11,11 +15,8 @@ class Role {
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20, unique = true, nullable = false)
-    learn.ecommerceplatformapi.entity.ERole name
+    ERole name
 
-    Role() {}
-
-    Role(learn.ecommerceplatformapi.entity.ERole name) {
-        this.name = name
-    }
+    @ManyToMany(mappedBy = "roles")
+    Set<User> users = new HashSet<>()
 }

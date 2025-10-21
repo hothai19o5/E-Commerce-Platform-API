@@ -27,3 +27,6 @@ server:
   port: 8080
   servlet:
     context-path: /api/v1
+
+stripe:
+  secret-key: sk_test_51LZ1r2AqY5JxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX
